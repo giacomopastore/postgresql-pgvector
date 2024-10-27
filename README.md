@@ -4,6 +4,8 @@
  
  - [pgvector Tutorial: Integrate Vector Search into PostgreSQL](https://www.datacamp.com/tutorial/pgvector-tutorial?dc_referrer=https%3A%2F%2Fwww.google.com%2F)
  - [How to run LLM model locally using only Macbook Air M1/M2](https://thaihoang.org/blog/llm-macbook/)
+ - [Ollama](https://github.com/ollama/ollama)
+ - [Ollama Python Library](https://github.com/ollama/ollama-python)
  - [Embedding models](https://ollama.com/blog/embedding-models)
 
 # PostgreSQL + pgvector

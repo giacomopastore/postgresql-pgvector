@@ -11,7 +11,9 @@ db_port = os.getenv("DB_PORT")
 db_name = os.getenv("DB_NAME")
 db_user = os.getenv("DB_USER")
 db_password = os.getenv("DB_PASSWORD")
+
 ollama_host = os.getenv("OLLAMA_HOST")
+ollama_model = os.getenv("OLLAMA_MODEL")
 ollama_embed_model = os.getenv("OLLAMA_EMBED_MODEL")
 
 ollama_client = Client(host=ollama_host)
@@ -34,18 +36,18 @@ cur.execute("""
     )
 """)
 
-# Function to get embeddings from Ollama
+# Get embeddings from Ollama
 def get_embedding(text):
     response = ollama_client.embed(model=ollama_embed_model, input=text)    
     return ",".join(map(str, response['embeddings']))
 
-# Function to add a document
+# Add document to DB
 def add_document(content):
     embedding = get_embedding(content)    
     cur.execute("INSERT INTO documents (content, embedding) VALUES (%s, %s)", (content, embedding))
     conn.commit()
 
-# Function to search for similar documents
+# Search for similar documents
 def search_documents(query, limit=5):
     query_embedding = get_embedding(query)
     cur.execute("""
@@ -56,7 +58,7 @@ def search_documents(query, limit=5):
     """, (query_embedding, limit))
     return cur.fetchall()
 
-# Add some documents
+# Add some sample documents
 documents = [
   "Llamas are members of the camelid family meaning they're pretty closely related to vicuñas and camels",
   "Llamas were first domesticated and used as pack animals 4,000 to 5,000 years ago in the Peruvian highlands",
@@ -69,11 +71,19 @@ for doc in documents:
     add_document(doc)
 
 # Perform a search
-search_query = "What animals are llamas related to?"
+#search_query = "What animals are llamas related to?"
+search_query = "How much does a llama weigh?"
 results = search_documents(search_query)
 print(f"Search results for: '{search_query}'")
 for i, (content, distance) in enumerate(results, 1):
     print(f"{i}. {content} (Distance: {distance:.4f})")
+
+# Generate a response combining the prompt and data we retrieved in step before
+output = ollama_client.generate(
+  model=ollama_model,
+  prompt=f"Using this data: {results[0]}. Respond to this prompt: {search_query}"
+)
+print(output['response'])
 
 # Clean the table
 cur.execute("""
