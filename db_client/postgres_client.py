@@ -49,6 +49,21 @@ class Postgres:
             print(f"Error executing UPDATE: {e}")
             self.connection.rollback()
 
+    def search_similar_issues(self, query_embedding, limit=5):
+        try:    
+            self.cursor.execute("""
+                SELECT id, issue, issue_embedding <-> %s::vector(768) AS distance
+                FROM issues
+                ORDER BY distance
+                LIMIT %s
+            """, (query_embedding, limit))
+
+            results = self.cursor.fetchall()
+            return results
+        except Exception as e:
+            print(f"Error executing SELECT: {e}")
+            return None
+
     def close(self):
         if self.cursor:
             self.cursor.close()
