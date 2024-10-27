@@ -1,3 +1,4 @@
+from loguru import logger
 import psycopg2
 from psycopg2 import sql
 
@@ -5,7 +6,7 @@ class Postgres:
     def __init__(self, dbname, user, password, host='localhost', port='5432'):
         self.connection = None
         try:
-            self.connection = psycopg2.connect(                                
+            self.connection = psycopg2.connect(
                 host=host,
                 port=port,
                 dbname=dbname,
@@ -13,9 +14,9 @@ class Postgres:
                 password=password
             )
             self.cursor = self.connection.cursor()
-            print("Connection to PostgreSQL DB successful")
+            logger.info("Connection to PostgreSQL DB successful")
         except Exception as e:
-            print(f"Error connecting to PostgreSQL DB: {e}")
+            logger.error(f"Error connecting to PostgreSQL DB: {e}")
 
     def select(self, table, columns='*', where_clause=None):
         try:
@@ -31,11 +32,11 @@ class Postgres:
             results = self.cursor.fetchall()
             return results
         except Exception as e:
-            print(f"Error executing SELECT: {e}")
+            logger.error(f"Error executing SELECT: {e}")
             return None
 
     def update(self, table, set_clause, where_clause, params):
-        try:            
+        try:
             query = sql.SQL("UPDATE {} SET {} WHERE {}").format(
                 sql.Identifier(table),
                 sql.SQL(set_clause),
@@ -44,13 +45,13 @@ class Postgres:
 
             self.cursor.execute(query, params)
             self.connection.commit()
-            print("Update successful")
+            logger.info("Update successful")
         except Exception as e:
-            print(f"Error executing UPDATE: {e}")
+            logger.error(f"Error executing UPDATE: {e}")
             self.connection.rollback()
 
     def search_similar_issues(self, query_embedding, limit=5):
-        try:    
+        try:
             self.cursor.execute("""
                 SELECT id, issue, issue_embedding <-> %s::vector(768) AS distance
                 FROM issues
@@ -61,7 +62,7 @@ class Postgres:
             results = self.cursor.fetchall()
             return results
         except Exception as e:
-            print(f"Error executing SELECT: {e}")
+            logger.error(f"Error executing SELECT: {e}")
             return None
 
     def close(self):
@@ -69,13 +70,13 @@ class Postgres:
             self.cursor.close()
         if self.connection:
             self.connection.close()
-        print("Connection closed")
+        logger.info("Connection closed")
 
 if __name__ == '__main__':
     db = Postgres(dbname='your_db', user='your_user', password='your_password')
 
     results = db.select('your_table', columns='column1, column2', where_clause='column1 = value')
-    print(results)
+    logger.info(f"Results: {results}")
 
     db.update('your_table', set_clause='column1 = new_value', where_clause='column2 = condition_value')
 

@@ -42,10 +42,12 @@ for i, (id, issue) in enumerate(issues, 1):
     update_issue(id, issue)
 
 # Serch for similar issues
-search_query = "I have a display problem"
+search_query = "my phone randomly shutdown"
 query_embedding = get_embedding(search_query)
 results = db.search_similar_issues(query_embedding)
 
 print(f"Search results for: '{search_query}'")
 for i, (id, issue, distance) in enumerate(results, 1):
     print(f"{i}. {id} + {issue} (Distance: {distance:.4f})")
+
+db.close()

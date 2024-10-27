@@ -2,3 +2,4 @@ python-dotenv
 psycopg2-binary
 numpy
 ollama
+loguru
