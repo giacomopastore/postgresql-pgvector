@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 import psycopg2
-import numpy as np
 from ollama import Client
 
 load_dotenv()
