@@ -1,8 +1,7 @@
 import os
 from dotenv import load_dotenv
-import psycopg2
-from db_client import Postgres
-from ollama import Client
+from db_client import PostgresClient
+from llm_client import OllamaClient
 
 load_dotenv()
 
@@ -16,18 +15,13 @@ ollama_host = os.getenv("OLLAMA_HOST")
 ollama_model = os.getenv("OLLAMA_MODEL")
 ollama_embed_model = os.getenv("OLLAMA_EMBED_MODEL")
 
-db = Postgres(host=db_host, port=db_port, dbname=db_name, user=db_user, password=db_password)
+db = PostgresClient(host=db_host, port=db_port, dbname=db_name, user=db_user, password=db_password)
 
-ollama_client = Client(host=ollama_host)
-
-# Get embeddings from Ollama
-def get_embedding(text):
-    response = ollama_client.embed(model=ollama_embed_model, input=text)
-    return ",".join(map(str, response['embeddings']))
+ollama_client = OllamaClient(host=ollama_host)
 
 # Update issue with embedding
 def update_issue(id, issue):
-    embedding = get_embedding(issue)
+    embedding = ollama_client.get_embedding(model=ollama_embed_model, input=issue)
 
     set_clause = "issue_embedding = %s"
     where_clause = "id = %s"
@@ -42,12 +36,12 @@ for i, (id, issue) in enumerate(issues, 1):
     update_issue(id, issue)
 
 # Serch for similar issues
-search_query = "my phone randomly shutdown"
-query_embedding = get_embedding(search_query)
+search_query = "cannot connect to bluetooth devices"
+query_embedding = embedding = ollama_client.get_embedding(model=ollama_embed_model, input=search_query)
 results = db.search_similar_issues(query_embedding)
 
 print(f"Search results for: '{search_query}'")
 for i, (id, issue, distance) in enumerate(results, 1):
-    print(f"{i}. {id} + {issue} (Distance: {distance:.4f})")
+    print(f"{i}. {id} - {issue} (Distance: {distance:.4f})")
 
 db.close()

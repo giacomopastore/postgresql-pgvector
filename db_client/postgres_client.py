@@ -2,7 +2,7 @@ from loguru import logger
 import psycopg2
 from psycopg2 import sql
 
-class Postgres:
+class PostgresClient:
     def __init__(self, dbname, user, password, host='localhost', port='5432'):
         self.connection = None
         try:
@@ -73,7 +73,7 @@ class Postgres:
         logger.info("Connection closed")
 
 if __name__ == '__main__':
-    db = Postgres(dbname='your_db', user='your_user', password='your_password')
+    db = PostgresClient(dbname='your_db', user='your_user', password='your_password')
 
     results = db.select('your_table', columns='column1, column2', where_clause='column1 = value')
     logger.info(f"Results: {results}")

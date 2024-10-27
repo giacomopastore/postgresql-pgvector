@@ -1,5 +1,5 @@
-# llm_clients/__init__.py
+# db_client/__init__.py
 
-from .postgres_client import Postgres
+from .postgres_client import PostgresClient
 
-__all__ = ["Postgres"]
+__all__ = ["PostgresClient"]
