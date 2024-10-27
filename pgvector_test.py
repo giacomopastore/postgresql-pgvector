@@ -21,11 +21,11 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 
 # Insert a vector
-embedding = np.array([1.5, 2.5, 3.5])
+embedding = np.array([4.5, 5.5, 6.5])
 cur.execute("INSERT INTO items (embedding) VALUES (%s)", (embedding.tolist(),))
 
 # Perform a similarity search
-query_vector = np.array([2.0, 3.0, 4.0])
+query_vector = np.array([4.3, 5.3, 6.3])
 cur.execute("SELECT * FROM items ORDER BY embedding <-> %s::vector(3) LIMIT 1", (query_vector.tolist(),))
 result = cur.fetchone()
 print(f"Nearest neighbor: {result}")
