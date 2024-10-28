@@ -31,7 +31,7 @@ prompt = """
     - Issue
     - Fix
     The output must be a JSON containing above fields without any additional comments.
-    There must be 50 records.
+    There must be 25 records.
     Issue and Fix should be detailed, more or less 50 words for each.
     Records must be varied in terms of brand, model, and type of issues.
     The JSON format must be:
@@ -55,7 +55,7 @@ prompt = """
     }
     """
 
-for i in range(2):
+for i in range(50):
     data = ollama_client.generate(prompt, format="json")
     jdata = json.loads(data)
 
@@ -63,14 +63,17 @@ for i in range(2):
     print(jdata)  
 
     for d in jdata["record"]:
-        db.insert(
-            table='issues',
-            columns=['issue_date', 'brand', 'model', 'issue', 'fix'],
-            values=[
-                d["date"],
-                d["brand"],
-                d["model"],
-                d["issue"],
-                d["fix"]
-            ]
-        )
+        try:
+            db.insert(
+                table='issues',
+                columns=['issue_date', 'brand', 'model', 'issue', 'fix'],
+                values=[
+                    d["date"],
+                    d["brand"],
+                    d["model"],
+                    d["issue"],
+                    d["fix"]
+                ]
+            )
+        except Exception as e:
+            logger.error("Error while fetching data: {}", e)
