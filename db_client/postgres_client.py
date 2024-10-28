@@ -18,7 +18,7 @@ class PostgresClient:
         except Exception as e:
             logger.error(f"Error connecting to PostgreSQL DB: {e}")
 
-    def select(self, table, columns='*', where_clause=None):
+    def select(self, table, columns='*', where_clause=None, order_clause=None, limit_clause=None, params=None):
         try:
             query = sql.SQL("SELECT {} FROM {}").format(
                 sql.SQL(columns),
@@ -27,8 +27,14 @@ class PostgresClient:
 
             if where_clause:
                 query += sql.SQL(" WHERE {}").format(sql.SQL(where_clause))
+            
+            if order_clause:
+                query += sql.SQL(" ORDER BY {}").format(sql.SQL(order_clause))
 
-            self.cursor.execute(query)
+            if limit_clause is not None:
+                query += sql.SQL(" LIMIT {}").format(sql.Literal(limit_clause))
+
+            self.cursor.execute(query, params)
             results = self.cursor.fetchall()
             return results
         except Exception as e:
@@ -49,21 +55,6 @@ class PostgresClient:
         except Exception as e:
             logger.error(f"Error executing UPDATE: {e}")
             self.connection.rollback()
-
-    def search_similar_issues(self, query_embedding, limit=5, vector_size=1024):
-        try:
-            self.cursor.execute("""
-                SELECT id, brand, model, issue, fix, issue_embedding <-> %s::vector(%s) AS distance
-                FROM issues
-                ORDER BY distance
-                LIMIT %s
-            """, (query_embedding, vector_size, limit))
-
-            results = self.cursor.fetchall()
-            return results
-        except Exception as e:
-            logger.error(f"Error executing SELECT: {e}")
-            return None
 
     def close(self):
         if self.cursor:

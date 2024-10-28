@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from db_client import PostgresClient
 from llm_client import OllamaClient
+from issue_manager import IssueManager
 
 load_dotenv()
 
@@ -18,34 +19,25 @@ ollama_embed_model = os.getenv("OLLAMA_EMBED_MODEL")
 vector_size = int(os.getenv("VECTOR_SIZE"))
 
 db = PostgresClient(host=db_host, port=db_port, dbname=db_name, user=db_user, password=db_password)
-
-ollama_client = OllamaClient(host=ollama_host)
-
-# Update issue with embedding
-def update_issue(id, issue):
-    embedding = ollama_client.embed(model=ollama_embed_model, input=issue)
-
-    set_clause = "issue_embedding = %s"
-    where_clause = "id = %s"
-    params = (embedding, id)
-    db.update('issues', set_clause, where_clause, params)
+ollama_client = OllamaClient(host=ollama_host, model=ollama_model, embed_model=ollama_embed_model)
+issue_manager = IssueManager(db, ollama_client)
 
 # Generate embeddings for issues
 issues = db.select('issues', columns='id, brand, model, issue', where_clause='issue_embedding IS NOT NULL')
 
-for i, (id, brand, model, issue) in enumerate(issues, 1):
-    print(f"{i}: ID = {id}, Issue = {issue}")
-    update_issue(id, f"{brand} - {model} - {issue}")
+for (id, brand, model, issue) in issues:
+    issue_manager.update_issue_embed(id, f"Brand: {brand}, Model: {model}, Issue: {issue}")
 
 # Serch for similar issues
 #search_query = "I have a wifi problem with my iphone"
-search_query = "I'm not able to hear the call from my iphone"
-query_embedding = embedding = ollama_client.embed(model=ollama_embed_model, input=search_query)
-results = db.search_similar_issues(query_embedding, vector_size=vector_size)
+#search_query = "I'm not able to hear the call from my iphone"
+#search_query = "On my oneplus bluetooth seems not working fine"
+search_query = "How can I resolve problems on detecting WiFi network with my Poco F3?"
+results = issue_manager.search_similar_issues(input=search_query)
 
 print(f"Search results for: '{search_query}'")
 for i, (id, brand, model, issue, fix, distance) in enumerate(results, 1):
-    print(f"{i}. {id} - {brand} - {model} - {issue} (Distance: {distance:.4f})")
+    print(f"{i}. {id} - {brand} - {model} - {issue} - {fix} (Distance: {distance:.4f})")
 
 # Propose a solution
 # Version 1
@@ -58,9 +50,9 @@ prompt = ("You are an assistant who can provide help and advice on how to solve 
 
 # Version 2
 data = '\n'.join(f'- ({brand} {model}): {fix}' for (id, brand, model, issue, fix, distance) in results)
-prompt = f"Using this data: {data}. Respond to this prompt: {search_query}"
+prompt = f"Using this data:\n{data}.\nRespond to this prompt: {search_query}"
 
-response = ollama_client.generate(model=ollama_model, prompt=prompt)
+response = ollama_client.generate(prompt=prompt)
 print(response)
 
 db.close()
