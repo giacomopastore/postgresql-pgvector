@@ -53,7 +53,7 @@ class PostgresClient:
     def search_similar_issues(self, query_embedding, limit=5):
         try:
             self.cursor.execute("""
-                SELECT id, issue, issue_embedding <-> %s::vector(768) AS distance
+                SELECT id, brand, model, issue, resolution, issue_embedding <-> %s::vector(768) AS distance
                 FROM issues
                 ORDER BY distance
                 LIMIT %s

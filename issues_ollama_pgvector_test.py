@@ -1,3 +1,4 @@
+from loguru import logger
 import os
 from dotenv import load_dotenv
 from db_client import PostgresClient
@@ -21,7 +22,7 @@ ollama_client = OllamaClient(host=ollama_host)
 
 # Update issue with embedding
 def update_issue(id, issue):
-    embedding = ollama_client.get_embedding(model=ollama_embed_model, input=issue)
+    embedding = ollama_client.embed(model=ollama_embed_model, input=issue)
 
     set_clause = "issue_embedding = %s"
     where_clause = "id = %s"
@@ -29,19 +30,30 @@ def update_issue(id, issue):
     db.update('issues', set_clause, where_clause, params)
 
 # Generate embeddings for issues
-issues = db.select('issues', columns='id, issue', where_clause='issue_embedding IS NULL')
+issues = db.select('issues', columns='id, brand, model, issue', where_clause='issue_embedding IS NOT NULL')
 
-for i, (id, issue) in enumerate(issues, 1):
+for i, (id, brand, model, issue) in enumerate(issues, 1):
     print(f"{i}: ID = {id}, Issue = {issue}")
-    update_issue(id, issue)
+    update_issue(id, f"{brand} - {model} - {issue}")
 
 # Serch for similar issues
-search_query = "cannot connect to bluetooth devices"
-query_embedding = embedding = ollama_client.get_embedding(model=ollama_embed_model, input=search_query)
-results = db.search_similar_issues(query_embedding)
+search_query = "I have a wifi problem with my iphone"
+query_embedding = embedding = ollama_client.embed(model=ollama_embed_model, input=search_query)
+results = db.search_similar_issues(query_embedding, limit=3)
 
 print(f"Search results for: '{search_query}'")
-for i, (id, issue, distance) in enumerate(results, 1):
-    print(f"{i}. {id} - {issue} (Distance: {distance:.4f})")
+for i, (id, brand, model, issue, fix, distance) in enumerate(results, 1):
+    print(f"{i}. {id} - {brand} - {model} - {issue} (Distance: {distance:.4f})")
+
+# Propose a solution
+prompt = ("Are you an assistant who can provide help and advice on how to solve any problems and defects of smartphones."
+        "You need to start the chat by summarizing the problem exposed by the user and explain some solutions."          
+        f"Here the question from the user '{search_query}', here possible solutions:\n"
+        f"{'\n'.join(f'* ({brand} {model}): {fix}' for (id, brand, model, issue, fix, distance) in results)}\n"
+        "You only need to elaborate the above possible solutions and not to give alternative solution based on your knowledge base."
+        "If there are no possible solutions you just need to say that unfortunately you can't give help.")
+
+response = ollama_client.generate(model=ollama_model, prompt=prompt)
+print(response)
 
 db.close()
