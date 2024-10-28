@@ -41,6 +41,21 @@ class PostgresClient:
             logger.error(f"Error executing SELECT: {e}")
             return None
 
+    def insert(self, table, columns, values):
+        try:
+            query = sql.SQL("INSERT INTO {} ({}) VALUES ({})").format(
+                sql.Identifier(table),
+                sql.SQL(", ").join(map(sql.Identifier, columns)),
+                sql.SQL(", ").join(sql.Placeholder() for _ in values)
+            )
+
+            self.cursor.execute(query, values)
+            self.connection.commit()
+            logger.info("Insert successful")
+        except Exception as e:
+            logger.error(f"Error executing INSERT: {e}")
+            self.connection.rollback()
+
     def update(self, table, set_clause, where_clause, params):
         try:
             query = sql.SQL("UPDATE {} SET {} WHERE {}").format(

@@ -32,16 +32,17 @@ class OllamaClient(LLMClient):
             logger.error("Error while fetching embedding: {}", e)
             raise RuntimeError(f"Error while fetching embedding: {e}")
         
-    def generate(self, prompt):
+    def generate(self, prompt, format=None):
         """
         Generates a response for a given prompt using the specified model.
         
         :param prompt: The prompt for which to generate the response.
+        :param format: The format of the response (e.g. json)
         :return: The response from the model.
         """
         logger.info("Generating response for prompt: {}", prompt)
         try:
-            output = self.client.generate(model=self.model, prompt=prompt)
+            output = self.client.generate(model=self.model, prompt=prompt, format=format)
             logger.info("Successfully generated response")
             return output["response"]
         except Exception as e:

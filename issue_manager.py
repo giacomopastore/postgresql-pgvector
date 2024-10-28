@@ -26,7 +26,7 @@ class IssueManager:
             set_clause = "issue_embedding = %s"
             where_clause = "id = %s"
             params = (input_embed, id)
-            self.db.update('issues', set_clause, where_clause, params)            
+            self.db.update(table='issues', set_clause=set_clause, where_clause=where_clause, params=params)            
         except Exception as e:
             logger.error(f"Error executing UPDATE: {e}")
             return None

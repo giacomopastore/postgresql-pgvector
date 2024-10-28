@@ -23,7 +23,7 @@ ollama_client = OllamaClient(host=ollama_host, model=ollama_model, embed_model=o
 issue_manager = IssueManager(db, ollama_client)
 
 # Generate embeddings for issues
-issues = db.select('issues', columns='id, brand, model, issue', where_clause='issue_embedding IS NOT NULL')
+issues = db.select('issues', columns='id, brand, model, issue', where_clause='issue_embedding IS NULL')
 
 for (id, brand, model, issue) in issues:
     issue_manager.update_issue_embed(id, f"Brand: {brand}, Model: {model}, Issue: {issue}")
@@ -31,17 +31,18 @@ for (id, brand, model, issue) in issues:
 # Serch for similar issues
 #search_query = "I have a wifi problem with my iphone"
 #search_query = "I'm not able to hear the call from my iphone"
+search_query = "I'm not able to hear the call from my iphone se"
 #search_query = "On my oneplus bluetooth seems not working fine"
-search_query = "How can I resolve problems on detecting WiFi network with my Poco F3?"
+#search_query = "How can I resolve problems on detecting WiFi network with my Poco F3?"
 results = issue_manager.search_similar_issues(input=search_query)
 
 print(f"Search results for: '{search_query}'")
 for i, (id, brand, model, issue, fix, distance) in enumerate(results, 1):
-    print(f"{i}. {id} - {brand} - {model} - {issue} - {fix} (Distance: {distance:.4f})")
+    print(f"{i}. {id} - {brand} - {model} - {issue} (Distance: {distance:.4f})")
 
 # Propose a solution
 # Version 1
-prompt = ("You are an assistant who can provide help and advice on how to solve any problems and defects of smartphones."
+prompt1 = ("You are an assistant who can provide help and advice on how to solve any problems and defects of smartphones."
         "You need to start the chat by summarizing the problem exposed by the user and explain some solutions."
         "You only need to elaborate the following possible solutions and not to give alternative solutions based on your knowledge base."
         "If there are no possible solutions you just need to say that unfortunately you can't give help."
@@ -50,9 +51,9 @@ prompt = ("You are an assistant who can provide help and advice on how to solve 
 
 # Version 2
 data = '\n'.join(f'- ({brand} {model}): {fix}' for (id, brand, model, issue, fix, distance) in results)
-prompt = f"Using this data:\n{data}.\nRespond to this prompt: {search_query}"
+prompt2 = f"Using this data:\n{data}.\nRespond to this prompt: {search_query}"
 
-response = ollama_client.generate(prompt=prompt)
+response = ollama_client.generate(prompt=prompt2)
 print(response)
 
 db.close()
