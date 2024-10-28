@@ -1,5 +1,3 @@
--- TODO: Create IVFFlat index
-
 CREATE TABLE issues (
   id SERIAL PRIMARY KEY,
   issue_date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -9,6 +7,8 @@ CREATE TABLE issues (
   fix TEXT NOT NULL CHECK (FIX != ''),
   issue_embedding vector(1024)
 );
+
+CREATE INDEX ON issues USING ivfflat (issue_embedding vector_cosine_ops) WITH (lists = 100);
 
 INSERT INTO issues (issue_date, brand, model, issue, fix) 
 VALUES 
