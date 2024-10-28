@@ -1,14 +1,16 @@
+-- TODO: Create IVFFlat index
+
 CREATE TABLE issues (
   id SERIAL PRIMARY KEY,
   issue_date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   brand VARCHAR(255) NOT NULL,
   model VARCHAR(255) NOT NULL,
   issue TEXT NOT NULL CHECK (ISSUE != ''),
-  resolution TEXT NOT NULL CHECK (RESOLUTION != ''),
-  issue_embedding vector(768)
+  fix TEXT NOT NULL CHECK (FIX != ''),
+  issue_embedding vector(1024)
 );
 
-INSERT INTO issues (id, issue_date, brand, model, issue, resolution) 
+INSERT INTO issues (id, issue_date, brand, model, issue, fix) 
 VALUES 
 (1, '2022-01-01', 'Samsung', 'Galaxy S22', 'Battery drains quickly even on standby.', 'Replaced the battery'),
 (2, '2021-12-05', 'Apple', 'iPhone 12', 'Touchscreen is unresponsive on the edges.', 'Replaced the screen'),

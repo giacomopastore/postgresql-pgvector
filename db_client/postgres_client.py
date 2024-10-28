@@ -50,14 +50,14 @@ class PostgresClient:
             logger.error(f"Error executing UPDATE: {e}")
             self.connection.rollback()
 
-    def search_similar_issues(self, query_embedding, limit=5):
+    def search_similar_issues(self, query_embedding, limit=5, vector_size=1024):
         try:
             self.cursor.execute("""
-                SELECT id, brand, model, issue, resolution, issue_embedding <-> %s::vector(768) AS distance
+                SELECT id, brand, model, issue, fix, issue_embedding <-> %s::vector(%s) AS distance
                 FROM issues
                 ORDER BY distance
                 LIMIT %s
-            """, (query_embedding, limit))
+            """, (query_embedding, vector_size, limit))
 
             results = self.cursor.fetchall()
             return results

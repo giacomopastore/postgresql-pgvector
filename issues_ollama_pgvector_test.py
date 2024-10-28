@@ -15,6 +15,7 @@ db_password = os.getenv("DB_PASSWORD")
 ollama_host = os.getenv("OLLAMA_HOST")
 ollama_model = os.getenv("OLLAMA_MODEL")
 ollama_embed_model = os.getenv("OLLAMA_EMBED_MODEL")
+vector_size = int(os.getenv("VECTOR_SIZE"))
 
 db = PostgresClient(host=db_host, port=db_port, dbname=db_name, user=db_user, password=db_password)
 
@@ -37,21 +38,27 @@ for i, (id, brand, model, issue) in enumerate(issues, 1):
     update_issue(id, f"{brand} - {model} - {issue}")
 
 # Serch for similar issues
-search_query = "I have a wifi problem with my iphone"
+#search_query = "I have a wifi problem with my iphone"
+search_query = "I'm not able to hear the call from my iphone"
 query_embedding = embedding = ollama_client.embed(model=ollama_embed_model, input=search_query)
-results = db.search_similar_issues(query_embedding, limit=3)
+results = db.search_similar_issues(query_embedding, vector_size=vector_size)
 
 print(f"Search results for: '{search_query}'")
 for i, (id, brand, model, issue, fix, distance) in enumerate(results, 1):
     print(f"{i}. {id} - {brand} - {model} - {issue} (Distance: {distance:.4f})")
 
 # Propose a solution
-prompt = ("Are you an assistant who can provide help and advice on how to solve any problems and defects of smartphones."
-        "You need to start the chat by summarizing the problem exposed by the user and explain some solutions."          
+# Version 1
+prompt = ("You are an assistant who can provide help and advice on how to solve any problems and defects of smartphones."
+        "You need to start the chat by summarizing the problem exposed by the user and explain some solutions."
+        "You only need to elaborate the following possible solutions and not to give alternative solutions based on your knowledge base."
+        "If there are no possible solutions you just need to say that unfortunately you can't give help."
         f"Here the question from the user '{search_query}', here possible solutions:\n"
-        f"{'\n'.join(f'* ({brand} {model}): {fix}' for (id, brand, model, issue, fix, distance) in results)}\n"
-        "You only need to elaborate the above possible solutions and not to give alternative solution based on your knowledge base."
-        "If there are no possible solutions you just need to say that unfortunately you can't give help.")
+        f"{'\n'.join(f'- ({brand} {model}): {fix}' for (id, brand, model, issue, fix, distance) in results)}\n")
+
+# Version 2
+data = '\n'.join(f'- ({brand} {model}): {fix}' for (id, brand, model, issue, fix, distance) in results)
+prompt = f"Using this data: {data}. Respond to this prompt: {search_query}"
 
 response = ollama_client.generate(model=ollama_model, prompt=prompt)
 print(response)
