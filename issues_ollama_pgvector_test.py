@@ -31,10 +31,10 @@ for (id, brand, model, issue) in issues:
 # Serch for similar issues
 #search_query = "I have a wifi problem with my iphone 13"
 #search_query = "I'm not able to hear the call from my iphone"
+search_query = "I'm not able to hear audio during call from my iphone"
 #search_query = "Face authentication no longer works on my iPhone 13"
 #search_query = "On my oneplus bluetooth seems not working fine"
-#search_query = "How can I resolve problems on detecting WiFi network with my Poco F3?"
-search_query = "I have a Galaxy A52 and sometimes it reboots."
+#search_query = "I have a Galaxy A52 and sometimes it reboots."
 results = issue_manager.search_similar_issues(input=search_query)
 
 print(f"Search results for: '{search_query}'")
@@ -54,7 +54,7 @@ prompt1 = ("You are an assistant who can provide help and advice on how to solve
 data = '\n'.join(f'- ({brand} {model}): {fix}' for (id, brand, model, issue, fix, distance) in results)
 prompt2 = f"Using this data:\n{data}.\nRespond to this prompt: {search_query}"
 
-response = ollama_client.generate(prompt=prompt1)
+response = ollama_client.generate(prompt=prompt2)
 print(response)
 
 db.close()
