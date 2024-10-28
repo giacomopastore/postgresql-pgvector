@@ -55,12 +55,12 @@ prompt = """
     }
     """
 
-for i in range(50):
+for i in range(10):
     data = ollama_client.generate(prompt, format="json")
     jdata = json.loads(data)
 
     #print(type(jdata))
-    print(jdata)  
+    #print(jdata)  
 
     for d in jdata["record"]:
         try:
