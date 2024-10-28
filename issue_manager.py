@@ -1,4 +1,5 @@
 from loguru import logger
+import time
 from db_client import PostgresClient
 from llm_client import OllamaClient
 
@@ -9,12 +10,17 @@ class IssueManager:
 
     def search_similar_issues(self, input, limit=5, vector_size=1024):
         input_embed = self.llm.embed(input)
+
+        start_time = time.time()
+
         try:
             results = self.db.select(table="issues",
                                      columns="id, brand, model, issue, fix, issue_embedding <-> %s::vector(%s) AS distance",
                                      order_clause="distance",
                                      limit_clause=limit,
                                      params=(input_embed, vector_size))
+            elapsed_time = time.time() - start_time
+            logger.info(f"Search completed in {elapsed_time} seconds")
             return results
         except Exception as e:
             logger.error(f"Error executing SELECT: {e}")

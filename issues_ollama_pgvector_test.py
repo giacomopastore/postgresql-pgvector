@@ -31,9 +31,10 @@ for (id, brand, model, issue) in issues:
 # Serch for similar issues
 #search_query = "I have a wifi problem with my iphone 13"
 #search_query = "I'm not able to hear the call from my iphone"
-search_query = "Face authentication no longer works on my iPhone 13"
+#search_query = "Face authentication no longer works on my iPhone 13"
 #search_query = "On my oneplus bluetooth seems not working fine"
 #search_query = "How can I resolve problems on detecting WiFi network with my Poco F3?"
+search_query = "I have a Galaxy A52 and sometimes it reboots."
 results = issue_manager.search_similar_issues(input=search_query)
 
 print(f"Search results for: '{search_query}'")
