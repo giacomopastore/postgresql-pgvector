@@ -1,6 +1,7 @@
 from ollama import Client
 from loguru import logger
 from llm_client.llm_client import LLMClient
+import time
 
 class OllamaClient(LLMClient):
     def __init__(self, host, model="llama3.2:3b", embed_model="mxbai-embed-large"):
@@ -25,8 +26,10 @@ class OllamaClient(LLMClient):
         """
         logger.info("Generating embedding for input: {}", input)
         try:
+            start_time = time.time()
             response = self.client.embed(model=self.embed_model, input=input)
-            logger.info("Successfully generated embedding")
+            elapsed_time = time.time() - start_time
+            logger.info(f"Embed completed in {elapsed_time} seconds")
             return ",".join(map(str, response['embeddings']))
         except Exception as e:
             logger.error("Error while fetching embedding: {}", e)
@@ -42,8 +45,10 @@ class OllamaClient(LLMClient):
         """
         logger.info("Generating response for prompt: {}", prompt)
         try:
+            start_time = time.time()
             output = self.client.generate(model=self.model, prompt=prompt, format=format)
-            logger.info("Successfully generated response")
+            elapsed_time = time.time() - start_time
+            logger.info(f"Generate completed in {elapsed_time} seconds")
             return output["response"]
         except Exception as e:
             logger.error("Error while fetching response: {}", e)
