@@ -37,6 +37,23 @@ class OllamaClient(LLMClient):
             logger.error("Error while fetching response: {}", e)
             raise RuntimeError(f"Error while fetching response: {e}")
 
+    def chat(
+        self,
+        messages: Optional[Sequence[dict]] = None,
+        **kwargs
+    ) -> Union[Mapping[str, Any], Iterator[Mapping[str, Any]]]:
+        try:
+            logger.info("Starting chat with model: {}, messages: {}", self.model, messages)
+            response = self.client.chat(
+                model=self.model,
+                messages=messages,
+                **kwargs
+            )
+            return response
+        except RequestError as e:
+            logger.error("Error during chat: {}", e)
+            raise RuntimeError(f"Error while chatting: {e}")
+        
 class OllamaAsyncClient(LLMClient):
     def __init__(self, host, model="llama3.2:3b", embed_model="mxbai-embed-large"):
         super().__init__(host, model, embed_model)

@@ -27,7 +27,6 @@ issue_manager = IssueManager(db, ollama_client)
 
 # Generate embeddings for issues
 issues = db.select('issues', columns='id, brand, model, issue', where_clause='issue_embedding IS NULL')
-
 for (id, brand, model, issue) in issues:
     issue_manager.update_issue_embed(id, f"Brand: {brand}, Model: {model}, Issue: {issue}")
 
@@ -97,8 +96,8 @@ async def run():
         )
 
     # Second API call: Get final response from the model
-    final_response = await ollama_async_client.chat(messages=messages)
-    print(final_response['message']['content'])
+    for part in ollama_client.chat(messages=messages, stream=True):
+        print(part['message']['content'], end='', flush=True)
 
 # Run the async function
 asyncio.run(run())
