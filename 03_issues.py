@@ -35,11 +35,11 @@ search_query = "I'm not able to hear audio during call from my iphone"
 #search_query = "Face authentication no longer works on my iPhone 13"
 #search_query = "On my oneplus bluetooth seems not working fine"
 #search_query = "I have a Galaxy A52 and sometimes it reboots."
-results = issue_manager.search_similar_issues(input=search_query)
+issues = issue_manager.search_similar_issues(input=search_query)
 
 print(f"Search results for: '{search_query}'")
-for i, (id, brand, model, issue, fix, distance) in enumerate(results, 1):
-    print(f"{i}. {id} - {brand} - {model} - {issue} (Distance: {distance:.4f})")
+for issue in issues:
+    print(f"{issue["id"]} - {issue["brand"]} - {issue["model"]} - {issue["issue"]} (Distance: {issue["distance"]:.4f})")
 
 # Propose a solution
 # Version 1

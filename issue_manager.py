@@ -2,6 +2,7 @@ from loguru import logger
 import time
 from db_client import PostgresClient
 from llm_client import OllamaClient
+import json
 
 class IssueManager:
     def __init__(self, db: PostgresClient, llm: OllamaClient):
@@ -21,7 +22,9 @@ class IssueManager:
                                      params=(input_embed, vector_size))
             elapsed_time = time.time() - start_time
             logger.info(f"Search completed in {elapsed_time} seconds")
-            return results
+            json_result = self.__convert_results_to_json(results)
+            logger.debug(f"Results: {json.dumps(json_result, indent=4)}")
+            return json_result
         except Exception as e:
             logger.error(f"Error executing SELECT: {e}")
             return None
@@ -36,3 +39,16 @@ class IssueManager:
         except Exception as e:
             logger.error(f"Error executing UPDATE: {e}")
             return None
+    
+    def __convert_results_to_json(self, results):
+        json_results = []
+        for row in results:
+            json_results.append({
+                "id": row[0],
+                "brand": row[1],
+                "model": row[2],
+                "issue": row[3],
+                "fix": row[4],
+                "distance": row[5]
+            })
+        return json_results

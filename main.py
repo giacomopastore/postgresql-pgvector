@@ -6,6 +6,7 @@ from llm_client import OllamaClient, OllamaAsyncClient
 from issue_manager import IssueManager
 import asyncio
 import json
+import cmd
 
 load_dotenv()
 
@@ -25,14 +26,9 @@ ollama_client = OllamaClient(host=ollama_host, model=ollama_model, embed_model=o
 ollama_async_client = OllamaAsyncClient(host=ollama_host, model=ollama_model, embed_model=ollama_embed_model)
 issue_manager = IssueManager(db, ollama_client)
 
-# Generate embeddings for issues
-issues = db.select('issues', columns='id, brand, model, issue', where_clause='issue_embedding IS NULL')
-for (id, brand, model, issue) in issues:
-    issue_manager.update_issue_embed(id, f"Brand: {brand}, Model: {model}, Issue: {issue}")
-
-async def run():
+async def run(query: str):
     # Serch for similar issues
-    messages = [{'role': 'user', 'content': "I'm not able to hear audio during call from my iphone"}]
+    messages = [{'role': 'user', 'content': query}]
 
     # First API call: Send the query and function description to the model
     response = await ollama_async_client.chat(
@@ -82,9 +78,32 @@ async def run():
             }
         )
 
+    #messages.append({'role': 'user', 'content': 'List the similar issues, one issue per line \
+    #                 by including these fiels: brand, model, issue, distance and then give an explanation on \
+    #                 how to solve the problem based on the similar issues'})
+
+    #messages.append({'role': 'user', 'content': 'Explain to the user how to fix the issues and also put references to similar problems found.'})
+    
     # Second API call: Get final response from the model
     for part in ollama_client.chat(messages=messages, stream=True):
         print(part['message']['content'], end='', flush=True)
 
-# Run the async function
-asyncio.run(run())
+class MyChat(cmd.Cmd):
+    prompt = ">> "
+    intro = "Welcome to MyCLI"
+    
+    def default(self, line):
+        if line:
+            try:
+                asyncio.run(run(line))
+            except Exception as e:
+                logger.error(f"Error on MyChat: {e}")
+                return None
+            
+    def emptyline(self):
+        pass
+
+    
+if __name__ == "__main__":    
+    #asyncio.run(main())
+    MyChat().cmdloop()
