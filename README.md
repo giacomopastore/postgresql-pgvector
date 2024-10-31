@@ -50,8 +50,17 @@ CREATE TABLE items (
 - Calculates the cosine distance between vectors: `SELECT * FROM items ORDER BY embedding <=> '[2,3,4]' LIMIT 1;`
 - Create IVFFlat index: `CREATE INDEX ON items USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);`
 
-- Execute [./pgvector_test.py](pgvector_test.py) to test with Python.
+- Execute [./01_pgvector_test.py](01_pgvector_test.py) to test with Python.
 
 ## ollama + pgvector test
 
-- Execute [./ollama_pgvector_test.py](ollama_pgvector_test.py) to test.
+- Execute [./02_ollama_pgvector_test.py](02_ollama_pgvector_test.py) to test.
+
+# ollama + pgvector test on issues DB
+
+- Execute [./generate_issues_dataset.py](generate_issues_dataset.py) to generate issue records in the DB.
+- Execute [./03_issues.py](03_issues.py) to test.
+
+# ollama + tools + pgvector test on issues DB
+
+- Execute [./04_issues_with_tools.py](04_issues_with_tools.py) to test.

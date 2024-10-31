@@ -1,15 +1,11 @@
-from ollama import Client
+from ollama import Client, AsyncClient, RequestError
 from loguru import logger
 from llm_client.llm_client import LLMClient
 import time
+from typing import Optional, Sequence, Union, Mapping, Any, Iterator, Literal
 
 class OllamaClient(LLMClient):
     def __init__(self, host, model="llama3.2:3b", embed_model="mxbai-embed-large"):
-        """
-        Initializes the Ollama client with the given host.
-
-        :param host: The host address for the Ollama API.
-        """
         super().__init__(host, model, embed_model)
         self.client = Client(host=host)
         self.model = model
@@ -17,17 +13,11 @@ class OllamaClient(LLMClient):
 
         logger.info("Ollama client initialized with host: {}, model: {}, embedding model: {}", host, model, embed_model)
 
-    def embed(self, input):
-        """
-        Generates the embedding for a given input using the specified model.
-        
-        :param input: The input for which to generate the embedding.
-        :return: The embedding of the input as a list, array, or string, depending on the implementation.
-        """
+    def embed(self, input, **kwargs):
         logger.info("Generating embedding for input: {}", input)
         try:
             start_time = time.time()
-            response = self.client.embed(model=self.embed_model, input=input)
+            response = self.client.embed(model=self.embed_model, input=input, **kwargs)
             elapsed_time = time.time() - start_time
             logger.info(f"Embed completed in {elapsed_time} seconds")
             return ",".join(map(str, response['embeddings']))
@@ -35,21 +25,67 @@ class OllamaClient(LLMClient):
             logger.error("Error while fetching embedding: {}", e)
             raise RuntimeError(f"Error while fetching embedding: {e}")
         
-    def generate(self, prompt, format=None):
-        """
-        Generates a response for a given prompt using the specified model.
-        
-        :param prompt: The prompt for which to generate the response.
-        :param format: The format of the response (e.g. json)
-        :return: The response from the model.
-        """
+    def generate(self, prompt, **kwargs):
         logger.info("Generating response for prompt: {}", prompt)
         try:
             start_time = time.time()
-            output = self.client.generate(model=self.model, prompt=prompt, format=format)
+            output = self.client.generate(model=self.model, prompt=prompt, **kwargs)
             elapsed_time = time.time() - start_time
             logger.info(f"Generate completed in {elapsed_time} seconds")
             return output["response"]
         except Exception as e:
             logger.error("Error while fetching response: {}", e)
             raise RuntimeError(f"Error while fetching response: {e}")
+
+class OllamaAsyncClient(LLMClient):
+    def __init__(self, host, model="llama3.2:3b", embed_model="mxbai-embed-large"):
+        super().__init__(host, model, embed_model)
+        self.client = AsyncClient(host=host)
+        self.model = model
+        self.embed_model = embed_model
+
+        logger.info("Ollama Async client initialized with host: {}, model: {}, embedding model: {}", host, model, embed_model)
+    
+    async def embed(self, input, **kwargs):
+        logger.info("Generating embedding for input: {}", input)
+        try:
+            start_time = time.time()
+            response = await self.client.embed(model=self.embed_model, input=input, **kwargs)
+            elapsed_time = time.time() - start_time
+            logger.info(f"Embed completed in {elapsed_time} seconds")
+            return ",".join(map(str, response['embeddings']))
+        except Exception as e:
+            logger.error("Error while fetching embedding: {}", e)
+            raise RuntimeError(f"Error while fetching embedding: {e}")
+        
+    async def generate(self, prompt, **kwargs):
+        logger.info("Generating response for prompt: {}", prompt)
+        try:
+            start_time = time.time()
+            output = await self.client.generate(model=self.model, prompt=prompt, **kwargs)
+            elapsed_time = time.time() - start_time
+            logger.info(f"Generate completed in {elapsed_time} seconds")
+            return output["response"]
+        except Exception as e:
+            logger.error("Error while fetching response: {}", e)
+            raise RuntimeError(f"Error while fetching response: {e}")
+        
+    async def chat(
+        self,
+        messages: Optional[Sequence[dict]] = None,
+        **kwargs
+    ) -> Union[Mapping[str, Any], Iterator[Mapping[str, Any]]]:
+        try:
+            logger.info("Starting chat with model: {}, messages: {}", self.model, messages)
+            response = await self.client.chat(
+                model=self.model,
+                messages=messages,
+                **kwargs
+            )
+            return response
+        except RequestError as e:
+            logger.error("Error during chat: {}", e)
+            raise RuntimeError(f"Error while chatting: {e}")
+        
+                
+        

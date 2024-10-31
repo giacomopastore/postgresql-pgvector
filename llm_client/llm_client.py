@@ -10,7 +10,7 @@ class LLMClient(ABC):
         self.host = host
 
     @abstractmethod
-    def embed(self, input):
+    def embed(self, input, **kwargs):
         """
         Generates the embedding for a given input using the specified model.
         
@@ -20,7 +20,7 @@ class LLMClient(ABC):
         pass
     
     @abstractmethod
-    def generate(self, prompt):
+    def generate(self, prompt, **kwargs):
         """
         Generates a response for a given prompt using the specified model.
         
