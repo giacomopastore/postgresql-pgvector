@@ -53,14 +53,16 @@ CREATE TABLE items (
 - Execute [./01_pgvector_test.py](01_pgvector_test.py) to test with Python.
 
 ## ollama + pgvector test
+- Execute [./02_ollama_pgvector_test.py](02_ollama_pgvector_test.py)
 
-- Execute [./02_ollama_pgvector_test.py](02_ollama_pgvector_test.py) to test.
-
-# ollama + pgvector test on issues DB
-
+# Issues DB
 - Execute [./generate_issues_dataset.py](generate_issues_dataset.py) to generate issue records in the DB.
-- Execute [./03_issues.py](03_issues.py) to test.
 
-# ollama + tools + pgvector test on issues DB
+## ollama + pgvector test
+- Execute [./03_issues.py](03_issues.py)
 
-- Execute [./04_issues_with_tools.py](04_issues_with_tools.py) to test.
+## tools + ollama + pgvector test
+- Execute [./04_issues_with_tools.py](04_issues_with_tools.py)
+
+## cmdline + tools + ollama + pgvector test
+- Execute [./05_issues_with_cmdline.py](05_issues_with_cmdline.py)
