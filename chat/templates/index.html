@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with your issues</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        pre {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 80%;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+
+        form {
+            width: 100%;
+            max-width: 80%;
+            display: flex;
+            gap: 10px;
+        }
+
+        textarea {
+            flex-grow: 1;
+            resize: none;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat with your issues</h1>
+    <pre id="body"></pre>
+    <form>
+        <textarea id="input" placeholder="Enter your message" rows="4"></textarea>
+        <button type="submit">Send</button>
+    </form>    
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const body = document.getElementById('body');
+        const submit_btn = document.querySelector('button');
+        const input = document.getElementById('input');
+
+        const submitHandler = async (e) => {
+            e.preventDefault();
+
+            const response = await fetch("/answer", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: input.value})
+            });
+
+            const reader = response.body.getReader();
+            let output = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                output += new TextDecoder().decode(value);
+                body.innerHTML = marked.parse(output);
+
+                if (done) {
+                    return;
+                }
+            }
+        };
+
+        submit_btn.addEventListener("click", submitHandler);
+
+        input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                submitHandler(e);
+            }
+        });
+    </script>
+</body>
+</html>
