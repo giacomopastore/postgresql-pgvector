@@ -9,6 +9,8 @@ import json
 
 load_dotenv()
 
+QUERY = "I'm not able to hear audio during call from my iphone"
+
 db_host = os.getenv("DB_HOST")
 db_port = os.getenv("DB_PORT")
 db_name = os.getenv("DB_NAME")
@@ -30,9 +32,9 @@ issues = db.select('issues', columns='id, brand, model, issue', where_clause='is
 for (id, brand, model, issue) in issues:
     issue_manager.update_issue_embed(id, f"Brand: {brand}, Model: {model}, Issue: {issue}")
 
-async def run():
+async def run(query: str):
     # Serch for similar issues
-    messages = [{'role': 'user', 'content': "I'm not able to hear audio during call from my iphone"}]
+    messages = [{'role': 'user', 'content': query}]
 
     # First API call: Send the query and function description to the model
     response = await ollama_async_client.chat(
@@ -87,4 +89,4 @@ async def run():
         print(part['message']['content'], end='', flush=True)
 
 # Run the async function
-asyncio.run(run())
+asyncio.run(run(QUERY))
