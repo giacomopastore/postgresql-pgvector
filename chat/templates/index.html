@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with your issues</title>
+    <title>Find and solve issues</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,14 +17,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
         }
 
         body {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
             padding: 20px;
+            justify-content: space-between;
         }
 
         pre {
@@ -50,8 +48,9 @@
             align-self: flex-end; /* Allineato a destra */
             padding: 10px;
             border-radius: 10px;
-            max-width: 70%; /* Limita la larghezza */
+            max-width: 80%; /* Limita la larghezza */
             margin-left: auto; /* Spinge a destra */
+            font-family: 'Helvetica Neue', Arial, sans-serif;
         }
 
         .response-message {
@@ -59,8 +58,9 @@
             align-self: flex-start; /* Allineato a sinistra */
             padding: 10px;
             border-radius: 10px;
-            max-width: 70%; /* Limita la larghezza */
-            
+            max-width: 80%; /* Limita la larghezza */
+            position: relative; /* Per il posizionamento dello spinner */
+            font-family: 'Helvetica Neue', Arial, sans-serif;
         }
 
         form {
@@ -82,12 +82,30 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+        .spinner {
+            display: none; /* Nascondi di default */
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 24px; /* Dimensione dell'icona dello spinner */
+        }
+
+        .spinner.show {
+            display: block; /* Mostra lo spinner */
+            animation: spin 1s linear infinite; /* Aggiungi animazione di rotazione */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <h1>Chat with your issues</h1>
+    <h1>Find and solve issues</h1>
     <pre id="body"></pre>
-    <form>
+    <form id="chat-form">
         <textarea id="input" placeholder="Enter your message" rows="4"></textarea>
         <button type="submit">Send</button>
     </form>    
@@ -97,9 +115,13 @@
         const body = document.getElementById('body');
         const submit_btn = document.querySelector('button');
         const input = document.getElementById('input');
+        const chatForm = document.getElementById('chat-form');
 
         const submitHandler = async (e) => {
             e.preventDefault();
+
+            // Disabilita il pulsante di invio
+            submit_btn.disabled = true;
 
             // Ottieni il messaggio dall'input
             const message = input.value;
@@ -112,56 +134,72 @@
             userMessageDiv.className = 'user-message';
             userMessageDiv.textContent = message;
             body.appendChild(userMessageDiv);
+            body.scrollTop = body.scrollHeight;
 
-            // Svuota i messaggi di risposta precedenti
-            const existingResponse = document.querySelector('.response-message');
-            if (existingResponse) {
-                existingResponse.remove();
-            }            
-
-            // Invia la richiesta
-            const response = await fetch("/answer", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({message: message})
-            });
-
-            const reader = response.body.getReader();
-            let output = "";
-
-            // Crea un box unico per la risposta
+            // Crea un nuovo box unico per la risposta
             const responseMessageDiv = document.createElement('div');
             responseMessageDiv.className = 'response-message';
             body.appendChild(responseMessageDiv);
 
-            // Disabilita il pulsante di invio e l'evento Enter
-            //submit_btn.disabled = true;
-            //input.removeEventListener("keypress", enterSubmitHandler);
-            
-            while (true) {
-                const { done, value } = await reader.read();
-                output += new TextDecoder().decode(value);
+            // Crea l'elemento spinner e mostralo
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner show'; // Mostra lo spinner
+            spinner.innerHTML = '⏳';  // Icona per il caricamento
+            responseMessageDiv.appendChild(spinner); // Aggiungi lo spinner alla risposta
 
-                // Aggiorna il messaggio di risposta in modo appropriato
-                responseMessageDiv.innerHTML = marked.parse(output);
-                
-                body.scrollTop = body.scrollHeight;
-                
-                if (done) {
-                    break; // Esci dal ciclo una volta completato lo streaming
+            try {
+                // Invia la richiesta
+                const response = await fetch("/answer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Errore nella richiesta: ${response.status}`);
                 }
+
+                const reader = response.body.getReader();
+                let output = "";
+
+                // Streaming della risposta
+                let firstChunkReceived = false;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    output += new TextDecoder().decode(value);
+
+                    // Rimuovi lo spinner al primo chunk di dati
+                    if (!firstChunkReceived && value) {
+                        spinner.classList.remove('show'); // Nascondi lo spinner
+                        firstChunkReceived = true;
+                    }
+
+                    // Aggiorna il messaggio di risposta
+                    responseMessageDiv.innerHTML = marked.parse(output);
+                    body.scrollTop = body.scrollHeight;
+
+                    if (done) break; // Esci dal ciclo una volta completato lo streaming
+                }
+            } catch (error) {
+                // Mostra l'errore nella chat
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'response-message';
+                errorDiv.style.color = 'red';
+                errorDiv.textContent = `Errore: ${error.message}`;
+                body.appendChild(errorDiv);
+            } finally {
+                // Riabilita il pulsante di invio
+                submit_btn.disabled = false;
             }
-
-            // Riabilita il pulsante di invio e l'evento Enter al termine dello streaming
-            //submit_btn.disabled = false;
-            //input.addEventListener("keypress", enterSubmitHandler);
-
         };
 
-        submit_btn.addEventListener("click", submitHandler);
+        // Associa il submitHandler all'evento submit del form
+        chatForm.addEventListener("submit", submitHandler);
 
+        // Gestione dell'evento Enter
         input.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault(); // Previene il salto di riga
                 submitHandler(e);
             }
         });
