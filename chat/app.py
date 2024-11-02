@@ -97,7 +97,9 @@ def answer():
                 }
             )
 
-        messages.append({'role': 'user', 'content': 'Explain to the user how to fix the issues and also put references to similar problems found.'})
+        messages.append({'role': 'user', 'content': 'List similar problems found previously with function issue_manager.search_similar_issues in a table saying: Here are the similar issues I found: \
+                         Then explain to the user how to fix the issues on the basis of previous results. \
+                         Do not refer to external knowledge base'})
         
         # Second API call: Get final response from the model
         for part in ollama_client.chat(messages=messages, stream=True):
