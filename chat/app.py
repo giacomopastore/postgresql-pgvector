@@ -78,8 +78,8 @@ def answer():
 
         # Check if the model decided to use the provided function
         if not response['message'].get('tool_calls'):
-            print("The model didn't use the function. Its response was:")
-            print(response['message']['content'])
+            logger.info("The model didn't use the function. Its response was:")
+            logger.debug(json.dumps(response['message']['content'], indent=4))
 
         # Process function calls made by the model
         if response['message'].get('tool_calls'):
@@ -89,6 +89,8 @@ def answer():
             for tool in response['message']['tool_calls']:
                 function_to_call = available_functions[tool['function']['name']]
                 function_response = function_to_call(tool['function']['arguments']['query'])
+                logger.info(f"The model used the function {function_to_call}")
+                logger.debug(f"Its response was: {json.dumps(function_response, indent=4)}")
                 # Add function response to the conversation
                 messages.append(
                 {
@@ -103,7 +105,6 @@ def answer():
         
         # Second API call: Get final response from the model
         for part in ollama_client.chat(messages=messages, stream=True):
-            #print(part['message']['content'], end='', flush=True)
             yield(part['message']['content'])
 
     return generate(), {"Content-Type": "text/plain"}
