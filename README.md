@@ -1,12 +1,14 @@
  # Introduction
 
- Taking inspiration from:
+Taking inspiration from:
  
- - [pgvector Tutorial: Integrate Vector Search into PostgreSQL](https://www.datacamp.com/tutorial/pgvector-tutorial?dc_referrer=https%3A%2F%2Fwww.google.com%2F)
- - [How to run LLM model locally using only Macbook Air M1/M2](https://thaihoang.org/blog/llm-macbook/)
- - [Ollama](https://github.com/ollama/ollama)
- - [Ollama Python Library](https://github.com/ollama/ollama-python)
- - [Embedding models](https://ollama.com/blog/embedding-models)
+- [pgvector Tutorial: Integrate Vector Search into PostgreSQL](https://www.datacamp.com/tutorial/pgvector-tutorial?dc_referrer=https%3A%2F%2Fwww.google.com%2F)
+- [How to run LLM model locally using only Macbook Air M1/M2](https://thaihoang.org/blog/llm-macbook/)
+- [Ollama](https://github.com/ollama/ollama)
+- [Ollama embedding models](https://ollama.com/blog/embedding-models)
+- [Ollama Python Library](https://github.com/ollama/ollama-python)
+- [How to get streamed output chunk by chunk using flask api](https://github.com/langchain-ai/langchain/discussions/20124)
+- [Flask streaming example](https://github.com/PrettyPrinted/youtube_video_code/blob/master/2024/03/28/How%20to%20Stream%20OpenAI%20API%20Responses%20in%20a%20Flask%20App/README.md)
 
 # PostgreSQL + pgvector
 
