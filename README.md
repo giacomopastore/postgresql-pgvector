@@ -68,3 +68,7 @@ CREATE TABLE items (
 
 ## cmdline + tools + ollama + pgvector test
 - Execute [./05_issues_with_cmdline.py](05_issues_with_cmdline.py)
+
+## chatbot
+
+- Execute [./chat/app.py](chat/app.py), ChatBot listen at `http://127.0.0.1:5000`.
